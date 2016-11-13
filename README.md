@@ -10,14 +10,14 @@ Existem dois métodos de instalação do BIND:
 ### 1. Instalando diretamente do código fonte
 **Requisitos:** Sistema UNIX, compilador C ANSI.
 
-1. Extraia o conteúdo do arquivo *__bind-9.10.4-P4.tar.gz__* e acesse o diretório raíz.
-2. Configure os arquivos necessários para a build do BIND executando: 
+- Extraia o conteúdo do arquivo *__bind-9.10.4-P4.tar.gz__* e acesse o diretório raíz.
+- Configure os arquivos necessários para a build do BIND executando: 
 ```
 ./configure [--prefix={dir_instalacao}]
 ```
 OBS: Por padrão os arquivos serão instalados no diretório **/usr/local/bin** caso o parametro **--prefix** não seja informado. **dir_instalacao** deve ser um diretório absoluto.
 
-3. Para instalar, execute:
+- Para instalar, execute:
 ```
 make install
 ```
@@ -32,22 +32,17 @@ sudo apt-get install bind9 bind9utils
 
 Uma vez que o BIND se encontra instalado na máquina o próximo passo é realizar a sua configuração. O servidor de DNS do BIND se chama **NAMED** e seu arquivo de configuração é o *__named.conf__*. Este arquivo pode ser criado do zero ou então utilizar o arquivo default que vem junto com a instação do BIND (/etc/bind/named.conf). Neste guia configuraremos um servidor primário simples, criando um arquivo do zero.
 
-1. Crie o arquivo *__named.conf__* conforme o exemplo abaixo. Maiores informações sobre as opções e sintaxe deste arquivo podem ser consultadas em: [16.2. /etc/named.conf](https://www.centos.org/docs/5/html/Deployment_Guide-en-US/s1-bind-namedconf.html)
+- Crie o arquivo *__named.conf__* conforme o exemplo abaixo, no diretório  /etc/bind/. Maiores informações sobre as opções e sintaxe deste arquivo podem ser consultadas em: [16.2. /etc/named.conf](https://www.centos.org/docs/5/html/Deployment_Guide-en-US/s1-bind-namedconf.html)
 
 ```
-options {
-    /*Caso fosse um servidor de producao deveria ser usado a porta padrao 53. Porem para evitar conflitos com o servidor padrão de DNS do Linux, usaremos uma outra porta.*/
-    port 24555;
-};
-
 /*Configurando a zona ficticia exemplo.com*/
 zone "exemplo.com" {
     type master; /* Servidor primario */
-    file "{dir_absoluto}/exemplo.com.zone";  /*Arquivo com registros de recurso da zona*/  
+    file "/etc/bind/exemplo.com.zone";  /*Arquivo com registros de recurso da zona*/
 };
 ```
 
-2. Crie o arquivo *__exemplo.com.zone__* conforme o exemplo abaixo. Maiores informações sobre as opções e sintaxe deste arquivo podem ser consultadas em: [16.3. Zone Files](https://www.centos.org/docs/5/html/Deployment_Guide-en-US/s1-bind-zone.html) 
+- Crie o arquivo *__exemplo.com.zone__* conforme o exemplo abaixo, no diretório /etc/bind/. Maiores informações sobre as opções e sintaxe deste arquivo podem ser consultadas em: [16.3. Zone Files](https://www.centos.org/docs/5/html/Deployment_Guide-en-US/s1-bind-zone.html) 
 
 ```
 @   		IN  SOA localhost.  localhost.localhost.com   (
@@ -62,7 +57,18 @@ localhost   IN  A   127.0.0.1 ; Registro mapeando o hostname do servidor de nome
 www 		IN  A   192.168.17.22 ; Registro mapeando um servidor HTTP ficticio para seu respectivo IP.
 ```
 
-3. Inicie o servidor executando:
+- Inicie o servidor executando:
 ```
-named -c {dir}/named.conf
+sudo named -c /etc/bind/named.conf
 ```
+OBS: Por padrão o NAMED roda na porta UDP 53, que é a porta padrão de serviços DNS. Por está razão, abrir um socket UDP nesta porta necessita de privilégios de super usuário.
+
+# Testando o servidor DNS configurado
+
+O servidor configurado pode ser testado usando a ferramenta *__Dig__*, da seguinte forma:
+
+```
+dig @localhost www.exemplo.com 
+```
+Neste caso estamos fazendo uma consulta ao host de nome *__www__* dentro da zona *__exemplo.com__*;
+
