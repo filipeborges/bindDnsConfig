@@ -70,6 +70,10 @@ OBS: Por padrão o NAMED roda na porta UDP 53, que é a porta padrão de serviç
 ```
 dig @localhost www.exemplo.com 
 ```
+
+
+![digAnswer](https://github.com/filipeborges/bindDnsConfig/blob/master/Assets/testRequestWithDig.png)
+
 Neste caso estamos fazendo uma consulta ao host de nome *__www__* dentro da zona *__exemplo.com__*;
 
 # Atualizando uma zona e finalizando o NAMED
