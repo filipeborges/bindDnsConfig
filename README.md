@@ -75,8 +75,8 @@ Neste caso estamos fazendo uma consulta ao host de nome *__www__* dentro da zona
 # Atualizando uma zona e finalizando o NAMED
 
 * Caso se deseje atualizar os registros de uma zona:
-1. Inserir novos registros no arquivo com os registros da zona  e *__realizar o incremento do valor numérico no registro SOA (primeiro valor)__*. No caso do servidor configurado, o arquivo com os registros da zona seria o *__exemplo.com.zone__*;
-2. Uma vez que o arquivo foi atualizado, deve-se mandar o sinal SIGHUP ao processo do NAMED, para que o arquivo seja carregado novamente:
+- Inserir novos registros no arquivo com os registros da zona  e *__realizar o incremento do valor numérico no registro SOA (primeiro valor)__*. No caso do servidor configurado, o arquivo com os registros da zona seria o *__exemplo.com.zone__*;
+- Uma vez que o arquivo foi atualizado, deve-se mandar o sinal SIGHUP ao processo do NAMED, para que o arquivo seja carregado novamente:
 ```
 sudo kill -SIGHUP {pid_named}
 ```
