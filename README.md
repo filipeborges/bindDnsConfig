@@ -65,10 +65,23 @@ OBS: Por padrão o NAMED roda na porta UDP 53, que é a porta padrão de serviç
 
 # Testando o servidor DNS configurado
 
-O servidor configurado pode ser testado usando a ferramenta *__Dig__*, da seguinte forma:
+* O servidor configurado pode ser testado usando a ferramenta *__Dig__*, da seguinte forma:
 
 ```
 dig @localhost www.exemplo.com 
 ```
 Neste caso estamos fazendo uma consulta ao host de nome *__www__* dentro da zona *__exemplo.com__*;
 
+# Atualizando uma zona e finalizando o NAMED
+
+* Caso se deseje atualizar os registros de uma zona:
+1. Inserir novos registros no arquivo com os registros da zona  e *__realizar o incremento do valor numérico no registro SOA (primeiro valor)__*. No caso do servidor configurado, o arquivo com os registros da zona seria o *__exemplo.com.zone__*;
+2. Uma vez que o arquivo foi atualizado, deve-se mandar o sinal SIGHUP ao processo do NAMED, para que o arquivo seja carregado novamente:
+```
+sudo kill -SIGHUP {pid_named}
+```
+
+* Caso se deseje finalizar o servidor de nomes NAMED:
+```
+sudo kill -SIGTERM {pid_named}
+```
