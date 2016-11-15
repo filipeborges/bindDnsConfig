@@ -89,3 +89,68 @@ sudo kill -SIGHUP {pid_named}
 ```
 sudo kill -SIGTERM {pid_named}
 ```
+
+# Configurando acesso ao NAMED via RNDC
+
+O RNDC é um utilitário de controle do NAMED que pode ser usado tanto de forma local quanto remota. Com ele é possível adicionar uma zona sem precisar mexer diretamente no arquivo de zonas, recarregar o arquivo de configuração sem o envio de sinal SIGHUP, finalizar o NAMED sem o envio de sinal SIGTERM, consultar o status do servidor e vários outros comandos úteis na administração de um servidor DNS. Para maiores informações sobre o RNDC, execute:
+```
+man rndc
+```
+
+* Toda a comunicação entre NAMED (Servidor) e RNDC (Cliente) precisa ser autenticada com uma chave. Portanto para configurar o acesso ao NAMED via RNDC, primeiro precisamos gerar essa chave de autenticação usando o seguinte comando:
+```
+dnssec-keygen -a hmac-sha384 -b 384 -n HOST my_key
+```
+Serão gerados dois arquivos com prefixos *__Kmy_key__*, onde um arquivo será um .key e o outro um .private. Obtenha o valor da linha *__Key:__* através do comando:
+```
+cat nome_arquivo.private
+```
+
+* Uma vez que a chave foi gerada, vamos criar o arquivo *__rndc.key__* no diretório /etc/bind/ conforme o exemplo abaixo:
+
+```
+key "rndc_key" {
+        algorithm hmac-sha384;
+        secret "{valor_chave}";
+};
+```
+OBS: O token {valor_chave} deve ser substituído pela chave obtida com o comando CAT anteriormente. Uma boa prática é colocar restrições no acesso de leitura e de escrita a este arquivo, de forma que somente usuários autorizados possam visualizar e modificar a chave de autenticação.
+
+* Agora vamos editar o arquivo *__named.conf__* acrescentando no início do arquivo o código:
+```
+include "/etc/bind/rndc.key";
+
+controls {
+        inet * allow { localhost; }
+        keys {rndc_key;};
+};
+
+```
+A linha *__inet * allow { localhost; }__* indica para o NAMED aceitar conexões vindas do *__localhost__* em todos os IPs locais. A linha *__keys {rndc_key;};__* indica para usar a chave definida no arquivo rndc.key com o nome "rndc_key". Caso fosse necessário um acesso remoto, o parametro *__allow__* poderia ser configurado como:
+```
+inet * allow { localhost; {ip_host_remoto}; }
+```
+
+* Por fim devemos criar o arquivo *__rndc.conf__* no diretório /etc/bind/, conforme o exemplo a seguir:
+```
+options {
+        default-server  localhost;
+        default-key     "rndc_key";
+};
+
+key "rndc_key" {
+        algorithm hmac-sha384;
+        secret "{valor_chave}";
+};
+```
+OBS: {valor_chave} deve ser a mesma chave configurada no arquivo *__rndc.key__*. Caso o acesso fosse feito remotamente, este arquivo deveria ser configurado na máquina de acesso, e a linha *__default-server__* deveria conter o IP do servidor rodando o NAMED. É uma boa prática restringir o acesso à leitura e a escrita a este arquivo, de forma a proteger a chave de autenticação.
+
+* Por fim devemos enviar um comando ao NAMED via RNDC da seguinte forma:
+```
+rndc -c /etc/bind/rndc.conf {comando}
+```
+
+A lista de comandos possíveis pode ser visualizada através do comando:
+```
+man rndc
+```
