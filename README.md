@@ -99,7 +99,7 @@ man rndc
 
 * Toda a comunicação entre NAMED (Servidor) e RNDC (Cliente) precisa ser autenticada com uma chave. Portanto para configurar o acesso ao NAMED via RNDC, primeiro precisamos gerar essa chave de autenticação usando o seguinte comando:
 ```
-dnssec-keygen -a hmac-sha384 -b 384 -n HOST my_key
+dnssec-keygen -a hmac-md5 -b 256 -n HOST my_key
 ```
 Serão gerados dois arquivos com prefixos *__Kmy_key__*, onde um arquivo será um .key e o outro um .private. Obtenha o valor da linha *__Key:__* através do comando:
 ```
@@ -110,7 +110,7 @@ cat nome_arquivo.private
 
 ```
 key "rndc_key" {
-        algorithm hmac-sha384;
+        algorithm hmac-md5;
         secret "{valor_chave}";
 };
 ```
@@ -139,7 +139,7 @@ options {
 };
 
 key "rndc_key" {
-        algorithm hmac-sha384;
+        algorithm hmac-md5;
         secret "{valor_chave}";
 };
 ```
