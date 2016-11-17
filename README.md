@@ -154,3 +154,51 @@ A lista de comandos possíveis pode ser visualizada através do comando:
 ```
 man rndc
 ```
+
+# Configurando uma Zona Reversa
+
+A zona reversa é o inverso da zona convencional do DNS, ou seja, mapeia um IP de um host para um nome de domínio. Para mapear os IPs de hosts, dentro de uma rede, para nomes de domínio, a rede deve estar no formato xxx.xxx.xxx.xxx/24 (IP de rede formado por 24 bits). Considere a zona reversa a seguir:
+```
+zone "1.1.10.in-addr.arpa" {
+        type master;
+        file "/etc/named_test/exemplo.com.rr.zone";
+};
+```
+Nesta zona reversa, podemos mapear todos os hosts da rede 10.1.1.x/24 para seus respecitvos nomes de domínio. Note que somente os octetos do IP relacionados a rede é que vão declarados na zona, de forma invertida (1.1.10 = 10.1.1.x/24), e fazendo parte do domínio *__in-addr.arpa__*, que é um domínio especial usado somente em zonas reversas. Se queremos mapear reversamente todos os hosts da rede 192.168.0.x/24, devemos declarar o nome da zona como: *__0.168.192.in-addr.arpa__*. A declaração do nome da zona, conforme o exemplo acima, deve ser feita no arquivo *__named.conf__*.
+
+Maiores informações sobre a zona reversa em ![DNS Reverse Mapping](http://www.zytrax.com/books/dns/ch3/)
+
+* Considerando o arquivo *__named.conf__* anteriormente configurado no DNS convencional, ao adicionarmos a zona reversa para a rede *__10.1.1.x/24__*, supondo que tivessemos autoridade sobre este conjunto de IPs, obtemos a seguinte configuração:
+```
+/*Zona configurada no processo de DNS convencional*/
+zone "myzone.com" {
+        type master;
+        file "/etc/named_test/myzone.com.zone";
+};
+/*Zona reversa adicionada*/
+zone "1.1.10.in-addr.arpa" {
+        type master;
+        file "/etc/named_test/myzone.com.rr.zone";
+};
+```
+
+* O próximo passo é criar o arquivo da zona reversa *__exemplo.com.rr.zone__* no diretório /etc/bind/, conforme o exemplo abaixo:
+```
+@           IN  SOA localhost.  localhost.localhost.com   (
+    1   ; Valor numerico que deve ser incrementado a cada vez que este arquivo for alterado para indicar ao NAMED para recarregar o arquivo.
+    1D  ; Tempo que o servidor secundario deve esperar até perguntar ao servidor primario se houve alteração no arquivo da zona.
+    10M ; Tempo que o servidor secundario ira esperar pela resposta do servidor primario, ate reenviar uma nova requisicao.
+    10M ; Tempo que o servidor secundario ira esperar pela resposta do reenvio de requisicao ao servidor primario. Caso este tempo estoure, o servidor secundario para de responder como autoridade para a zona.
+    1D )  ; Tempo TTL para cache das informacoes da zona por outros servidores de nome.
+                IN      NS      localhost.
+
+5               IN      PTR     host1.exemplo.com.
+6               IN      PTR     host2.exemplo.com.
+```
+
+Os registros de recurso SOA e NS são os mesmos que no caso da zona convencional. A diferença aqui se dá por conta do registro PTR, que é usado para apontar (pointer) um nome de domínio para um determinado IP. Portanto, ao consultarmos no servidor de DNS por informações reversa dos IPs *__10.1.1.5__* e *__10.1.1.6__*, será retornado respectivamente os nomes de domínio *__host1.exemplo.com__* e *__host2.exemplo.com__*.
+
+* Podemos testar a zona reversa usando a ferramenta *__dig__* da seguinte forma:
+```
+dig -x {IP}
+```
