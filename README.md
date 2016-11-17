@@ -173,12 +173,12 @@ Maiores informações sobre a zona reversa em ![DNS Reverse Mapping](http://www.
 /*Zona configurada no processo de DNS convencional*/
 zone "myzone.com" {
         type master;
-        file "/etc/named_test/myzone.com.zone";
+        file "/etc/named_test/exemplo.com.zone";
 };
 /*Zona reversa adicionada*/
 zone "1.1.10.in-addr.arpa" {
         type master;
-        file "/etc/named_test/myzone.com.rr.zone";
+        file "/etc/named_test/exemplo.com.rr.zone";
 };
 ```
 
