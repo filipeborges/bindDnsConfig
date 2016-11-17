@@ -200,5 +200,5 @@ Os registros de recurso SOA e NS são os mesmos que no caso da zona convencional
 
 * Podemos testar a zona reversa usando a ferramenta *__dig__* da seguinte forma:
 ```
-dig -x {IP}
+dig @localhost -x {IP}
 ```
